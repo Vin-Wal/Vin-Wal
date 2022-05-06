@@ -1,0 +1,25 @@
+#Backward Selection
+
+import statsmodels.api as sma
+
+def backward_selection(X, y,
+                           initial_list=[],  
+                           threshold = 0.05, 
+                           verbose=True):
+    included=list(X.columns)
+    while True:
+        changed=False
+        model = sma.OLS(y, sma.add_constant(pd.DataFrame(X[included]))).fit()
+        # use all coefs except intercept
+        pvalues = model.pvalues.iloc[1:]
+        worst_pval = pvalues.max() # null if pvalues is empty
+        if worst_pval > threshold:
+            changed=True
+            worst_feature = pvalues.idxmax()
+            included.remove(worst_feature)
+            if verbose:
+                #print('Drop  with p-value '.format(worst_feature, worst_pval))
+                print(f'Drop {worst_feature} with p-value {round(worst_pval,2)}.')
+        if not changed:
+            break
+    return included
