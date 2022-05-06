@@ -1,0 +1,32 @@
+#Forwad Selection
+
+import statsmodels.api as sma
+
+def forward_selection(X, y,
+                       initial_list=[], 
+                       threshold=0.05, 
+                       verbose=True):
+    initial_list = []
+    included = list(initial_list)
+    print(X.columns)
+    new=0
+    while True:
+        changed=False
+        # forward step
+        excluded = list(set(X.columns)-set(included))
+        new_pval = pd.Series(index=excluded)
+        for new_column in excluded:
+            model = sma.OLS(y, sma.add_constant(pd.DataFrame(X[included+[new_column]]))).fit()
+            new_pval[new_column] = round(model.pvalues[new_column],5)
+        best_pval = round(new_pval.min(),5)
+        if best_pval < threshold:
+            best_feature = new_pval.idxmin()
+            included.append(best_feature)
+            changed=True
+            if verbose:
+                print(f'Add {best_feature}  with p-value {round(best_pval,5)}.')
+
+        if not changed:
+            break
+
+    return included
